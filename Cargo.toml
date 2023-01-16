@@ -1,0 +1,22 @@
+[package]
+name = "excel-sp"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.68"
+calamine = "0.19.1"
+dialoguer = "0.10.3"
+rfd = "0.10.0"
+xlsxwriter = "0.5.0"
+indicatif = "0.17"
+console = "*"
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
