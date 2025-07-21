@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
-use calamine::{open_workbook, DataType, Reader, Xlsx};
+use calamine::{open_workbook, Data, Reader, Xlsx};
 use console::style;
 use dialoguer::Input;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -54,7 +54,7 @@ fn main() -> Result<()> {
         let mut sheet1 = workbook.add_worksheet(Some("Sheet1"))?;
 
         // 获取标题
-        let title: Vec<&[DataType]> = r.rows().take(title_rows).collect();
+        let title: Vec<&[Data]> = r.rows().take(title_rows).collect();
 
         for (i, row) in r.rows().enumerate() {
             if i == count * page {
@@ -118,18 +118,27 @@ fn get_save_path() -> Result<PathBuf> {
         .unwrap())
 }
 
-fn write_sheet(sheet1: &mut Worksheet, data: &DataType, ii: usize, row_index: u32) -> Result<()> {
-    if data.is_bool() {
-        sheet1.write_boolean(row_index, ii as u16, data.get_bool().unwrap_or(false), None)?;
-    }
-    if data.is_empty() {
-        sheet1.write_string(row_index, ii as u16, "", None)?;
-    }
-    if data.is_float() || data.is_int() {
-        sheet1.write_number(row_index, ii as u16, data.get_float().unwrap_or(0f64), None)?;
-    }
-    if data.is_string() {
-        sheet1.write_string(row_index, ii as u16, data.get_string().unwrap_or(""), None)?;
+fn write_sheet(sheet1: &mut Worksheet, data: &Data, ii: usize, row_index: u32) -> Result<()> {
+    match data {
+        Data::Bool(b) => {
+            sheet1.write_boolean(row_index, ii as u16, *b, None)?;
+        }
+        Data::Empty => {
+            sheet1.write_string(row_index, ii as u16, "", None)?;
+        }
+        Data::Float(f) => {
+            sheet1.write_number(row_index, ii as u16, *f, None)?;
+        }
+        Data::Int(i) => {
+            sheet1.write_number(row_index, ii as u16, *i as f64, None)?;
+        }
+        Data::String(s) => {
+            sheet1.write_string(row_index, ii as u16, s, None)?;
+        }
+        _ => {
+            // Handle any other cases by converting to string
+            sheet1.write_string(row_index, ii as u16, "", None)?;
+        }
     }
     Ok(())
 }
